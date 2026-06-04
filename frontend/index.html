@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Based Learning Path Generator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-graduation-cap header-icon"></i>
+                <div class="logo-text">
+                    <h1>AI Learning Path Generator</h1>
+                    <span>LangChain + RAG Multiagent Advisor</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="status-badge" id="modeBadge">
+                    <i class="fa-solid fa-toggle-off"></i>
+                    <span>Demo Mode (Mock LLM)</span>
+                </div>
+                <button class="icon-btn btn-settings" id="toggleSettingsBtn" title="API Configuration">
+                    <i class="fa-solid fa-sliders"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            
+            <!-- Left Side: Interactive Input Panel & Progress -->
+            <section class="control-panel panel-glass">
+                <div class="section-title">
+                    <i class="fa-solid fa-compass-drafting"></i>
+                    <h2>Configure Goal</h2>
+                </div>
+                
+                <form id="goalForm" class="goal-form">
+                    <div class="input-group">
+                        <label for="learningGoal">What do you want to learn?</label>
+                        <textarea id="learningGoal" name="goal" placeholder="e.g. I want to learn Machine Learning for Computer Vision. I have basic python knowledge and want to build a portfolio project." required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group half">
+                            <label for="difficulty">Current Skill Level</label>
+                            <select id="difficulty" name="difficulty">
+                                <option value="beginner" selected>Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="input-group half">
+                            <label for="learningStyle">Learning Style</label>
+                            <select id="learningStyle" name="learning_style">
+                                <option value="mixed" selected>Mixed (Theory + Practice)</option>
+                                <option value="practical">Practical (Coding Projects)</option>
+                                <option value="theoretical">Theoretical (Concepts/Reading)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="slider-label">
+                            <label for="duration">Path Duration</label>
+                            <span class="slider-value" id="durationVal">6 Weeks</span>
+                        </div>
+                        <input type="range" id="duration" name="duration_weeks" min="2" max="12" value="6" step="1">
+                    </div>
+
+                    <div class="input-group">
+                        <div class="slider-label">
+                            <label for="weeklyHours">Weekly Commitment</label>
+                            <span class="slider-value" id="hoursVal">8 Hours/week</span>
+                        </div>
+                        <input type="range" id="weeklyHours" name="weekly_hours" min="2" max="20" value="8" step="1">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-glow" id="generateBtn">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Generate Roadmap</span>
+                    </button>
+                </form>
+
+                <!-- Progress Tracker Widget (Initially Hidden) -->
+                <div class="progress-card panel-glass-dark" id="progressCard" style="display: none;">
+                    <h3>Your Learning Progress</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <span id="progressPercent">0% Completed</span>
+                        <span id="completedStepsFraction">0 of 0 Steps</span>
+                    </div>
+                    <div class="progress-actions">
+                        <button class="btn btn-secondary" id="adaptPathBtn">
+                            <i class="fa-solid fa-code-pull-request"></i>
+                            <span>Adapt Path</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Footer Quick Toggle -->
+                <button class="btn btn-text" id="toggleLibraryBtn">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Browse RAG Resource Library</span>
+                </button>
+            </section>
+
+            <!-- Right Side: Dynamic Roadmap Board -->
+            <section class="dashboard-board panel-glass">
+                
+                <!-- Empty State (Shown before Generation) -->
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-glow"></div>
+                    <i class="fa-solid fa-map-location-dot empty-icon"></i>
+                    <h2>No Path Generated Yet</h2>
+                    <p>Enter your learning goals and preferences on the left config panel. Our multiagent advisor will search our curated RAG library and structure a customized week-by-week learning pathway for you.</p>
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i>
+                            <h4>RAG Retrieval</h4>
+                            <p>Injects verified docs, courses & video resources.</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fa-solid fa-users-gear"></i>
+                            <h4>Multiagent Planning</h4>
+                            <p>Goal parsing, RAG filtering & curriculum design.</p>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fa-solid fa-sliders-up"></i>
+                            <h4>Progress Adaptation</h4>
+                            <p>Dynamically morphs learning pace & challenge levels.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState" style="display: none;">
+                    <div class="spinner-container">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-pulse"></div>
+                    </div>
+                    <h3 id="loadingText">Analyzing learning goals...</h3>
+                    <p>Goal Analyzer Agent is breaking down topics and planning milestones.</p>
+                    <div class="loading-steps">
+                        <div class="load-step active" id="loadStep1"><i class="fa-solid fa-check"></i> Goal Analyzer Active</div>
+                        <div class="load-step" id="loadStep2"><i class="fa-solid fa-circle-notch fa-spin"></i> RAG Resource Retrieval</div>
+                        <div class="load-step" id="loadStep3"><i class="fa-solid fa-circle-notch fa-spin"></i> Roadmap Generation</div>
+                    </div>
+                </div>
+
+                <!-- Active Roadmap Dashboard (Shown after Generation) -->
+                <div class="roadmap-dashboard" id="roadmapDashboard" style="display: none;">
+                    <div class="roadmap-summary-card">
+                        <div class="summary-details">
+                            <h2 id="roadmapTitle">Web Development Roadmap</h2>
+                            <p id="roadmapSummary">Master modern HTML, CSS, JavaScript, and React.</p>
+                            <div class="roadmap-meta">
+                                <span class="meta-tag"><i class="fa-solid fa-gauge-high"></i> <span id="metaDifficulty">Beginner</span></span>
+                                <span class="meta-tag"><i class="fa-solid fa-calendar-week"></i> <span id="metaDuration">8 Weeks</span></span>
+                                <span class="meta-tag"><i class="fa-solid fa-clock"></i> <span id="metaHours">8 Hours/week</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Vertical Timeline -->
+                    <div class="roadmap-timeline" id="timelineContainer">
+                        <!-- Steps will be injected dynamically here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Slide-out Settings Panel (API Key Configurations) -->
+        <div class="settings-drawer shadow-panel" id="settingsDrawer">
+            <div class="drawer-header">
+                <h3>Settings & API Keys</h3>
+                <button class="icon-btn" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="drawer-body">
+                <div class="input-group">
+                    <label for="geminiApiKey">Gemini API Key</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="geminiApiKey" placeholder="Enter your GEMINI_API_KEY">
+                        <button type="button" class="icon-btn" id="toggleApiKeyVisibility"><i class="fa-solid fa-eye"></i></button>
+                    </div>
+                    <small>Required for real-time Multiagent analysis. Leave blank to run in <strong>Demo Mode</strong> with smart mocking.</small>
+                </div>
+                
+                <div class="settings-actions">
+                    <button class="btn btn-primary" id="saveSettingsBtn">Save Key</button>
+                    <button class="btn btn-secondary" id="clearSettingsBtn">Clear Key</button>
+                </div>
+                <div class="settings-status" id="settingsStatus"></div>
+            </div>
+        </div>
+
+        <!-- Adapt Path Modal Overlay -->
+        <div class="modal-overlay" id="adaptModal">
+            <div class="modal panel-glass-dark">
+                <div class="modal-header">
+                    <h3>Adapt Your Learning Path</h3>
+                    <button class="icon-btn" id="closeAdaptModalBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p>Provide feedback on your progress. The Adaptive Planner Agent will recalculate remaining weeks, rewrite projects, and fetch easier or more advanced resources based on your comments.</p>
+                    
+                    <div class="input-group">
+                        <label for="adaptationFeedback">Progress Feedback / Requests</label>
+                        <textarea id="adaptationFeedback" placeholder="e.g. 'Week 2 was too difficult, I need more simple examples on JavaScript callbacks.' or 'I already know CSS grid, skip it and add more flexbox tutorials.'"></textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" id="cancelAdaptBtn">Cancel</button>
+                        <button class="btn btn-primary btn-glow" id="submitAdaptBtn">
+                            <i class="fa-solid fa-rotate"></i>
+                            <span>Adapt Remaining Steps</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RAG Resource Library Modal -->
+        <div class="modal-overlay" id="libraryModal">
+            <div class="modal large-modal panel-glass-dark">
+                <div class="modal-header">
+                    <h3>RAG Curated Knowledge Base</h3>
+                    <button class="icon-btn" id="closeLibraryModalBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p>These resources are preloaded in our RAG database. When you generate a roadmap, the retriever extracts the most matching resources to match your objectives.</p>
+                    <div class="library-search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="librarySearchInput" placeholder="Filter resources by name, type, or descriptions...">
+                    </div>
+                    <div class="library-grid" id="libraryGrid">
+                        <!-- Dynamic library items will go here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Logic -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
